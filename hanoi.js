@@ -3,6 +3,9 @@
  */
 
 (function () {
+    /**
+     * Rect 表示每个塔上面的碟子 或者叫做碗 or 方块 or 砖头, (⊙o⊙)… 随便你怎么叫吧, 你应该知道我说的是什么
+     */
     function Rect(index, opt) {
         this.index = index;
         this.min = 20; // 20px
@@ -40,6 +43,9 @@
         }
     };
 
+    /**
+     * Tower 是塔的抽象类
+     */
     function Tower(index) {
         this.index = index;
         this.h = 100;
@@ -109,6 +115,10 @@
         }
     };
 
+    /**
+     * 入口函数
+     * n 表示有几层碟子
+     */
     function main(n, opt) {
         var towerNum = 3,
             towers = [],
@@ -122,26 +132,38 @@
                 speed : parseInt(opt.speed)
             }));
         }
-//        for (i = rects.length - 1; i >=0; i--) {
-//            rects[i].tower = towers[0];
-//            rects[i].moveTo();
-//        }
+
+        // 每个碟子对应一个index值, index == 0 表示最大的那个碟子, index 越大表示越小的那个碟子
         var index = rects.length - 1;
-        Q(index, towers[0]);
-        function Q(i, to) {
-            if (i < 0){
-                start();
-                return;
+
+
+        new Promise((resolve, reject) => {
+            setAllRectsToTheFistTowerOneByOne(index, towers[0]);
+
+            // 将所有的碟子都依次放在第一个塔上面
+            function setAllRectsToTheFistTowerOneByOne(i, to) {
+                if (i < 0) {
+                    resolve();
+                    return;
+                }
+
+                move(i, to, function () {
+                    i = i - 1;
+                    setAllRectsToTheFistTowerOneByOne(i, towers[0]);
+                });
             }
-            move(i, to, function () {
-                i = i-1;
-                Q(i, towers[0]);
-            });
-        }
+
+        }).then(() => {
+            start();
+        });
+
+
         function move(i, to, fn) {
             rects[i].tower = to;
             rects[i].moveTo(fn)
         }
+
+        // 将第1个柱子所有的碟子都移动到第3个柱子上面
         function start() {
             var steps = [];
             h(n - 1, towers[0], towers[1], towers[2], function (prop) {
@@ -161,6 +183,15 @@
             }
         }
 
+        /**
+         * h 函数是汉诺塔递归的核心算法
+         * 它表示将第一个柱子所有的碟子都移动到第三个柱子上面
+         * @param n  n表示所有的碟子, n == 4 说明有4个碟子
+         * @param a  第1根柱子
+         * @param b  第2根柱子
+         * @param c  第3根柱子
+         * @param fn  回调函数
+         */
         function h(n, a, b, c, fn){
             if (n === 0) {
                 fn({
